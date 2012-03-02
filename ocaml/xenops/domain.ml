@@ -505,8 +505,6 @@ let build_pre ~xc ~xs ~vcpus ~xen_max_mib ~shadow_mib ~required_host_free_mib do
 	) vpt_align;
 	debug "VM = %s; domid = %d; domain_max_vcpus %d" (Uuid.to_string uuid) domid vcpus;
 	Xenctrl.domain_max_vcpus xc domid vcpus;
-	debug "VM = %s; domid = %d; domain_set_memmap_limit %Ld MiB" (Uuid.to_string uuid) domid xen_max_mib;
-	Xenctrl.domain_set_memmap_limit xc domid (Memory.kib_of_mib xen_max_mib);
 	debug "VM = %s; domid = %d; shadow_allocation_set %d MiB" (Uuid.to_string uuid) domid shadow_mib;
 	Xenctrl.shadow_allocation_set xc domid shadow_mib;
 
@@ -576,6 +574,8 @@ let build_linux (task: Xenops_task.t) ~xc ~xs ~static_max_kib ~target_kib ~kerne
 
 	let store_port, console_port = build_pre ~xc ~xs
 		~xen_max_mib ~shadow_mib ~required_host_free_mib ~vcpus domid in
+
+	Xenctrl.domain_set_memmap_limit xc domid (Memory.kib_of_mib xen_max_mib);
 
 	let line = XenguestHelper.with_connection task domid
 	  [
@@ -796,6 +796,8 @@ let pv_restore (task: Xenops_task.t) ~xc ~xs ~static_max_kib ~target_kib ~vcpus 
 
 	let store_port, console_port = build_pre ~xc ~xs
 		~xen_max_mib ~shadow_mib ~required_host_free_mib ~vcpus domid in
+
+	Xenctrl.domain_set_memmap_limit xc domid (Memory.kib_of_mib xen_max_mib);
 
 	let store_mfn, console_mfn = restore_common task ~xc ~xs ~hvm:false
 	                                            ~store_port ~console_port
