@@ -509,6 +509,8 @@ CAMLprim value stub_xc_domain_save(value handle, value fd, value domid,
 	CAMLparam5(handle, fd, domid, max_iters, max_factors);
 	CAMLxparam2(flags, hvm);
 	struct save_callbacks callbacks;
+        /* FIXME: Integrate properly */
+        unsigned long vm_generation_addr = 0;
 
 	uint32_t c_flags;
   uint32_t c_domid;
@@ -525,7 +527,8 @@ CAMLprim value stub_xc_domain_save(value handle, value fd, value domid,
 	caml_enter_blocking_section();
 	r = xc_domain_save(_H(handle), Int_val(fd), c_domid,
 	                   Int_val(max_iters), Int_val(max_factors),
-	                   c_flags, &callbacks, Bool_val(hvm));
+	                   c_flags, &callbacks, Bool_val(hvm),
+                           vm_generation_addr);
 	caml_leave_blocking_section();
 	if (r)
 		failwith_oss_xc(_H(handle), "xc_domain_save");
@@ -564,6 +567,10 @@ CAMLprim value stub_xc_domain_restore(value handle, value fd, value domid,
 	unsigned long store_mfn, console_mfn;
 	unsigned int c_store_evtchn, c_console_evtchn;
 	int r;
+        /* FIXME: Integrate properly */
+        unsigned long vm_generation_addr = 0;
+        int no_incr_generation_id = 1;
+        domid_t store_domid = 0, console_domid = 0;
 
 	struct flags f;
 	get_flags(&f,_D(domid));
@@ -578,9 +585,10 @@ CAMLprim value stub_xc_domain_restore(value handle, value fd, value domid,
 
 	caml_enter_blocking_section();
 	r = xc_domain_restore(_H(handle), Int_val(fd), _D(domid),
-	                      c_store_evtchn, &store_mfn,
-	                      c_console_evtchn, &console_mfn,
-			      Bool_val(hvm), f.pae, 0 /*superpages*/);
+	                      c_store_evtchn, &store_mfn, store_domid,
+	                      c_console_evtchn, &console_mfn, console_domid,
+			      Bool_val(hvm), f.pae, 0 /*superpages*/,
+                              no_incr_generation_id, &vm_generation_addr);
 	caml_leave_blocking_section();
 	if (r)
 		failwith_oss_xc(_H(handle), "xc_domain_restore");
