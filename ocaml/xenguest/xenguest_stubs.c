@@ -588,7 +588,8 @@ CAMLprim value stub_xc_domain_restore(value handle, value fd, value domid,
 	                      c_store_evtchn, &store_mfn, store_domid,
 	                      c_console_evtchn, &console_mfn, console_domid,
 			      Bool_val(hvm), f.pae, 0 /*superpages*/,
-                              no_incr_generation_id, &vm_generation_addr);
+                              no_incr_generation_id, &vm_generation_addr,
+                              NULL);
 	caml_leave_blocking_section();
 	if (r)
 		failwith_oss_xc(_H(handle), "xc_domain_restore");
